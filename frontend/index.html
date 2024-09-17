@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Chatbot with ZK Proofs</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center">Health Chatbot with ZK Proofs</h1>
+      <form id="chatForm" class="mt-4">
+        <div class="form-group">
+          <label for="question">Ask your health-related question:</label>
+          <input type="text" id="question" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Ask</button>
+      </form>
+      <div id="response" class="mt-4"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#chatForm").on("submit", function (e) {
+          e.preventDefault();
+          const question = $("#question").val();
+
+          // Placeholder for actual proof generation logic
+          const proof = generateProof();  // Replace with actual proof generation
+          const public_signals = generatePublicSignals();  // Replace with actual public signals
+
+          $.ajax({
+            type: "POST",
+            url: "/query",
+            data: {
+              question: question,
+              proof: proof,
+              public_signals: public_signals
+            },
+            success: function (response) {
+              $("#response").html(
+                '<div class="alert alert-success">' + response.response + "</div>"
+              );
+            },
+            error: function (error) {
+              $("#response").html(
+                '<div class="alert alert-danger">Error: ' +
+                  error.responseJSON.error +
+                  "</div>"
+              );
+            },
+          });
+        });
+
+        function generateProof() {
+          // Placeholder logic for proof generation (integrate Circom)
+          return "dummy_proof";
+        }
+
+        function generatePublicSignals() {
+          // Placeholder logic for public signals generation
+          return "dummy_public_signals";
+        }
+      });
+    </script>
+  </body>
+</html>
