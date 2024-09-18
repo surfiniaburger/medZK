@@ -64,7 +64,7 @@ def verify_proof(proof, public_signals, verification_key_path):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('frontend/index.html')
 
 
 @app.route('/query', methods=['POST'])
