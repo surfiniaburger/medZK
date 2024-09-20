@@ -1,4 +1,5 @@
 import os
+import shutil
 from flask import Flask, request, jsonify, render_template
 import subprocess
 import json
@@ -7,6 +8,8 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+
 
 app = Flask(__name__)
 
@@ -53,7 +56,8 @@ chat_session = model.start_chat(history=[])
 def generate_proof(circuit):
     try:
         # Make 'circom' a subfolder of your script
-        CIRCUIT_BASE_DIR = os.path.join(os.path.dirname(__file__), 'circom') 
+        CIRCUIT_BASE_DIR = os.path.join(os.path.dirname(__file__), r'backend\circom')
+
 
 
         if circuit == "HealthRecordVerification":
@@ -72,9 +76,30 @@ def generate_proof(circuit):
             js_script = os.path.join(CIRCUIT_BASE_DIR, "HealthRiskAssessment_js", "generate_witness.js")
         else:
             return None, "Invalid circuit selection."
+        
+        # Check if all required files exist
+        required_files = [wasm_path, input_json, witness_wtns, zkey, js_script]
+        for file in required_files:
+            if not os.path.exists(file):
+                return None, f"File not found: {file}"
+            
+        # Check if node and snarkjs are accessible
+        if not shutil.which('node'):
+            return None, "'node' executable not found in PATH."
+        if not shutil.which('snarkjs'):
+            return None, "'snarkjs' executable not found in PATH."
+        
+        # Print paths for debugging
+        print("Running Node.js script:", js_script)
+        print("WASM path:", wasm_path)
+        print("Input JSON path:", input_json)
+        print("Witness path:", witness_wtns)
+        print("Zkey path:", zkey)
 
         # Run witness generation using the correct js script path
-        subprocess.run(['node', js_script, wasm_path, input_json, witness_wtns], check=True)
+        result = subprocess.run(['node', js_script, wasm_path, input_json, witness_wtns], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(result.stdout.decode())
+        print(result.stderr.decode())
         
         # Generate proof using PLONK
         subprocess.run(['snarkjs', 'plonk', 'prove', zkey, witness_wtns, 'proof.json', 'public.json'], check=True)
@@ -88,7 +113,9 @@ def generate_proof(circuit):
         return {"proof": proof, "publicSignals": public_signals}, None
 
     except subprocess.CalledProcessError as e:
-        return None, f"Error during subprocess execution: {str(e)}"
+        # Log any error returned by the subprocess
+        print(f"Subprocess error: {e.stderr.decode()}")
+        return None, f"Error during subprocess execution: {e.stderr.decode()}"
     except Exception as e:
         return None, str(e)
 
@@ -99,6 +126,7 @@ def home():
 @app.route('/generate-proof', methods=['POST'])
 def generate_proof_endpoint():
     data = request.json
+    print(f"Received data: {data}")  # Log received data
     circuit = data.get("circuit")
     proof_data, error = generate_proof(circuit)
     
