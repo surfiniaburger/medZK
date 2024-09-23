@@ -103,3 +103,12 @@ For HealthRecordVerification:
 ```bash
 snarkjs plonk verify HealthRecordVerification.vkey public_healthrecord.json proof_healthrecord.json
 ```
+
+## Export verification key
+```bash
+snarkjs zkey export verificationkey circom/HealthRecordVerification_final.zkey circom/HealthRecordVerification_verification_key.json
+```
+
+```bash
+snarkjs zkey export verificationkey circom/HealthRiskAssessment.zkey circom/HealthRiskAssessment_verification_key.json
+```
